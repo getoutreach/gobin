@@ -14,7 +14,7 @@ import (
 )
 
 var golangVerOutReg = regexp.MustCompile(` go(\d.+) `)
-var removeVersion = regexp.MustCompile(`^\/(v\d+)\/`)
+var removeVersion = regexp.MustCompile(`^/(v\d+)/`)
 
 type Module struct {
 	// The unmodified/parsed import path, includes the command, if present
@@ -54,11 +54,11 @@ func (m *Module) GetBinaryCache() (string, error) {
 	}
 
 	binDir := filepath.Join(homeDir, ".outreach", ".cache", "gobin", "binaries", goVer, m.Path, "@v", m.Version, m.GetCommandPath())
-	binPath := filepath.Join(binDir, filepath.Base(binDir))
+	binPath := filepath.Join(binDir, filepath.Base(m.OriginalImport))
 	return binPath, nil
 }
 
-func Run(ctx context.Context, importPath string, printPath bool) error {
+func Run(ctx context.Context, importPath string, printPath bool) error { //nolint:funlen
 	ref := ""
 	verSplit := strings.SplitN(importPath, "@", 2)
 	if len(verSplit) == 2 {
@@ -147,7 +147,7 @@ func buildRepository(ctx context.Context, sourceDir string, m *Module) error {
 	return err
 }
 
-func downloadRepository(ctx context.Context, m *Module) (string, error) {
+func downloadRepository(_ context.Context, m *Module) (string, error) {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
 		return "", err
