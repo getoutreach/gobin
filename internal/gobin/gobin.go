@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/pkg/errors"
 	"golang.org/x/tools/go/vcs"
@@ -92,12 +93,8 @@ func Run(ctx context.Context, importPath string, printPath bool) error { //nolin
 	// Build it, because it wasn't found
 	if _, err := os.Stat(binPath); err != nil {
 		// Otherwise clone the repo, and build it
-		sourceDir, err := downloadRepository(ctx, m)
-		defer func() {
-			if sourceDir != "" {
-				os.RemoveAll(sourceDir)
-			}
-		}()
+		cleanupFn, sourceDir, err := downloadRepository(ctx, m)
+		defer cleanupFn()
 		if err != nil {
 			return err
 		}
@@ -147,23 +144,12 @@ func buildRepository(ctx context.Context, sourceDir string, m *Module) error {
 	return err
 }
 
-func downloadRepository(_ context.Context, m *Module) (string, error) {
-	homeDir, err := os.UserHomeDir()
+func downloadRepository(_ context.Context, m *Module) (func(), string, error) { //nolint:gocritic // Why: These seem fine.
+	sourceDir := filepath.Join(os.TempDir(), "gobin", time.Now().Format(time.RFC3339Nano))
+	cleanupFn := func() { os.RemoveAll(sourceDir) }
+	err := os.MkdirAll(filepath.Dir(sourceDir), 0755)
 	if err != nil {
-		return "", err
+		return cleanupFn, "", err
 	}
-
-	goVer, err := getCurrentGoVersion()
-	if err != nil {
-		return "", err
-	}
-
-	sourceDir := filepath.Join(homeDir, ".outreach", ".cache", "gobin", "source", goVer, m.Path, m.Version)
-	// Delete it in case it exists already
-	os.RemoveAll(sourceDir)
-	err = os.MkdirAll(filepath.Dir(sourceDir), 0755)
-	if err != nil {
-		return "", err
-	}
-	return sourceDir, m.repo.VCS.CreateAtRev(sourceDir, m.Repo, m.Version)
+	return cleanupFn, sourceDir, m.repo.VCS.CreateAtRev(sourceDir, m.Repo, m.Version)
 }
