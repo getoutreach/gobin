@@ -19,8 +19,10 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
 	"gopkg.in/yaml.v2"
+
 	// Place any extra imports for your startup code here
 	///Block(imports)
+	"github.com/getoutreach/gobin/internal/gobin"
 	///EndBlock(imports)
 )
 
@@ -122,6 +124,9 @@ func main() { //nolint:funlen
 		Version: oapp.Version,
 		Name:    "gobin",
 		///Block(app)
+		Action: func(c *cli.Context) error {
+			return gobin.Run(c.Context, c.Args().First(), c.Bool("print-path"))
+		},
 		///EndBlock(app)
 	}
 	app.Flags = []cli.Flag{
@@ -142,6 +147,10 @@ func main() { //nolint:funlen
 			Usage: "Force checking for an update",
 		},
 		///Block(flags)
+		&cli.BoolFlag{
+			Name:    "print-path",
+			Aliases: []string{"p"},
+		},
 		///EndBlock(flags)
 	}
 	app.Commands = []*cli.Command{
