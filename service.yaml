@@ -1,0 +1,6 @@
+name: gobin
+reportingTeam: "cia-dev-tooling"
+library: true
+deployToProd: false
+commands:
+  - gobin
