@@ -13,7 +13,7 @@
 [Generated Documentation](https://engdocs.outreach.cloud/github.com/getoutreach/gobin/)
 
 <!--- Block(custom) -->
-# PLEASE EDIT THIS
+`gobin` downloads and runs Go repositories just in time.
 <!--- EndBlock(custom) -->
 
 ## Dependencies and Setup
