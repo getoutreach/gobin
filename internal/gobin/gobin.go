@@ -3,6 +3,7 @@ package gobin
 import (
 	"context"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -16,6 +17,8 @@ import (
 
 var golangVerOutReg = regexp.MustCompile(` go(\d.+) `)
 var removeVersion = regexp.MustCompile(`^/(v\d+)/`)
+
+const toolVersions = ".tool-versions"
 
 type Module struct {
 	// The unmodified/parsed import path, includes the command, if present
@@ -133,6 +136,27 @@ func buildRepository(ctx context.Context, sourceDir string, m *Module) error {
 	binPath, err := m.GetBinaryCache()
 	if err != nil {
 		return err
+	}
+
+	// Copy .tool-versions for asdf go version support
+	// if it exists
+	if _, err := os.Stat(toolVersions); err == nil { //nolint:govet // Why: We're ok shadowing err
+		f, err := os.Open(toolVersions)
+		if err != nil {
+			return err
+		}
+		defer f.Close()
+
+		nf, err := os.Create(filepath.Join(sourceDir, toolVersions))
+		if err != nil {
+			return err
+		}
+		defer nf.Close()
+
+		_, err = io.Copy(nf, f)
+		if err != nil {
+			return err
+		}
 	}
 
 	cmd := exec.CommandContext(ctx, "go", "build", "-o", binPath, "./"+m.GetCommandPath())
