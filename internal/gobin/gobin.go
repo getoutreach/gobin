@@ -113,7 +113,7 @@ func Run(ctx context.Context, importPath string, printPath bool) error { //nolin
 		return nil
 	}
 
-	// run the command
+	// do nothing, we don't have support for -run right now.
 	return nil
 }
 
