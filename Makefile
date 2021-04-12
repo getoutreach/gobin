@@ -82,8 +82,8 @@ integration:
 ## e2e:             run e2e tests for gobin
 .PHONY: e2e
 e2e:
-	@devenv status -q || \
-		(echo "Starting developer environment"; set -x; devenv provision ${E2E_ARGS})
+	@devenv --skip-update status -q || \
+		(echo "Starting developer environment"; set -x; devenv --skip-update provision ${E2E_ARGS})
 	TEST_TAGS=or_test,or_e2e $(BASE_TEST_ENV) MY_NAMESPACE=$(E2E_NAMESPACE) MY_POD_SERVICE_ACCOUNT=$(E2E_SERVICE_ACCOUNT) OUTREACH_DOMAIN=$(OUTREACH_DOMAIN) ./scripts/test.sh
 
 ## benchmark:       run benchmarks
