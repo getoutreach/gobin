@@ -12,6 +12,8 @@ SHELLCHECKPATH="$DIR/shellcheck.sh"
 
 # shellcheck source=./lib/logging.sh
 source "$DIR/lib/logging.sh"
+# shellcheck source=./lib/runtimes.sh
+source "$DIR/lib/runtimes.sh"
 
 # Run shellcheck on shell-scripts, only if installed.
 info "Running shellcheck"
@@ -29,7 +31,7 @@ if ! git ls-files '*.sh' | xargs -n40 "$SHELLFMTPATH" -s -d; then
 fi
 
 info "Running clang-format"
-if ! find . -path ./api/clients -prune -o -name '*.proto' -exec "$DIR"/clang-format-validate.sh {} +; then
+if ! git ls-files '*.proto' | xargs -n40 "$DIR"/clang-format-validate.sh; then
   error "clang-format failed on some files. Run 'make fmt' to fix."
   exit 1
 fi

@@ -23,8 +23,8 @@
   "[yaml]": {
     "editor.defaultFormatter": "redhat.vscode-yaml"
   },
-  "gopls.env": {
-    "GOFLAGS": "-tags=or_test,or_dev,or_e2e,or_int"
+  "gopls": {
+    "build.buildFlags": ["-tags=or_test,or_dev,or_e2e,or_int"]
   }
   // Please consider contributing back all added
   // settings to bootstrap!

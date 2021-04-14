@@ -1,12 +1,17 @@
 #!/usr/bin/env bash
 #
 # Run a golang binary using gobin
+set -x
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
-GOBINVERSION=v0.0.14
-GOBINPATH="$DIR/../bin/gobin"
+GOBINVERSION=v1.0.1
+GOBINBOOTSTRAPVERSION=v0.0.14
+GOBINBOOTSTRAPPATH="$DIR/../bin/gobin-go-1.15"
 GOOS=$(go env GOOS)
 GOARCH=$(go env GOARCH)
+
+# Allow people who don't have GOPRIVATE set to use this
+export GOPRIVATE='github.com/getoutreach/*'
 
 # shellcheck source=./lib/logging.sh
 source "$DIR/lib/logging.sh"
@@ -22,15 +27,20 @@ if [[ -z $1 ]] || [[ $1 =~ ^(--help|-h) ]]; then
   exit 1
 fi
 
-if [[ ! -e $GOBINPATH ]]; then
+# TODO: When we move to go 1.16, remove this and replace with `go install`
+if [[ ! -e $GOBINBOOTSTRAPPATH ]]; then
   {
-    mkdir -p "$(dirname "$GOBINPATH")"
-    info "installing gobin@$GOBINVERSION into '$GOBINPATH'"
-    curl --location --output "$GOBINPATH" --silent "https://github.com/myitcv/gobin/releases/download/$GOBINVERSION/$GOOS-$GOARCH"
-    chmod +x "$GOBINPATH"
+    mkdir -p "$(dirname "$GOBINBOOTSTRAPPATH")"
+    curl --location --output "$GOBINBOOTSTRAPPATH" --silent "https://github.com/getoutreach/gobin-fork/releases/download/$GOBINBOOTSTRAPVERSION/$GOOS-$GOARCH"
+    chmod +x "$GOBINBOOTSTRAPPATH"
   } >&2
 fi
 
+if [[ $1 == "download-only" ]]; then
+  exit 0
+fi
+
+# Fetch outreach's gobin using the OSS gobin until we can use go install
 # gobin picks up the Go binary from the path and runs it from within
 # the temp directory while building things.  This has the unfortunate
 # side effect that the version of Go used depends on what was used
@@ -44,10 +54,21 @@ cp "$DIR/../.tool-versions" "$gobin_tmpdir/.tool-versions"
 
 # Change into the temporary directory
 pushd "$gobin_tmpdir" >/dev/null || exit 1
-BIN_PATH=$(/usr/bin/env bash -c "export TMPDIR='$gobin_tmpdir'; unset GOFLAGS; '$GOBINPATH' -p '$1'")
-shift
+GOBINPATH=$(/usr/bin/env bash -c "export TMPDIR='$gobin_tmpdir'; unset GOFLAGS; '$GOBINBOOTSTRAPPATH' -p 'github.com/getoutreach/gobin/cmd/gobin@$GOBINVERSION'")
 popd >/dev/null || exit 1
-rm -rf "$gobin_tmpdir"
+if [[ -z $GOBINPATH ]]; then
+  echo "Error: Failed to bootstrap gobin" >&2
+  exit 1
+fi
+
+BIN_PATH=$("$GOBINPATH" --skip-update -p "$1")
+if [[ -z $BIN_PATH ]]; then
+  echo "Error: Failed to run $1" >&2
+  exit 1
+fi
+
+# Remove the module
+shift
 
 if [[ $PRINT_PATH == "true" ]]; then
   echo "$BIN_PATH"

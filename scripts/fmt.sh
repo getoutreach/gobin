@@ -6,7 +6,7 @@ SCRIPTS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 
 # Tools
 JSONNETFMT=$(./scripts/gobin.sh -p github.com/google/go-jsonnet/cmd/jsonnetfmt@v0.16.0)
-GOIMPORTS=$(./scripts/gobin.sh -p golang.org/x/tools/cmd/goimports)
+GOIMPORTS=$(./scripts/gobin.sh -p golang.org/x/tools/cmd/goimports@v0.1.0)
 GOFMT="${GOFMT:-gofmt}"
 
 # shellcheck source=./lib/runtimes.sh
@@ -37,6 +37,6 @@ info_sub "shfmt"
 find . -path ./vendor -prune -o -name node_modules -type d \
   -prune -o -type f -name '*.sh' -exec ./scripts/shfmt.sh -w -l {} +
 
-info_sub "prettier (yaml/json)"
+info_sub "Prettier (yaml/json)"
 run_node_command "$SCRIPTS_DIR/.." yarn
 run_node_command "$SCRIPTS_DIR/.." yarn prettier --write "**/*.{yaml,yml,json}"

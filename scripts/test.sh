@@ -48,6 +48,8 @@ fi
 if [[ -z $CI && $TEST_TAGS == *"or_int"* ]]; then
   # shellcheck disable=SC2034
   cleanup="true"
+
+  info "creating integration infrastructure"
 fi
 
 ###Block(testextras)
