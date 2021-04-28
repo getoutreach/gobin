@@ -10,12 +10,12 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/getoutreach/gobox/pkg/updater"
 	oapp "github.com/getoutreach/gobox/pkg/app"
 	"github.com/getoutreach/gobox/pkg/cfg"
 	olog "github.com/getoutreach/gobox/pkg/log"
 	"github.com/getoutreach/gobox/pkg/secrets"
 	"github.com/getoutreach/gobox/pkg/trace"
+	"github.com/getoutreach/gobox/pkg/updater"
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
 	"gopkg.in/yaml.v2"
