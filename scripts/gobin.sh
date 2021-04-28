@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 #
 # Run a golang binary using gobin
-set -x
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 GOBINVERSION=v1.0.1
