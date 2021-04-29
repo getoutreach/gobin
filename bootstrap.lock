@@ -3,4 +3,5 @@
 version: v6.0.1
 generated: 2021-04-28T20:55:46Z
 versions:
-  devbase: v1.0.5
+  ### Devation(devbase): Until a new release of bootstrap comes out.
+  devbase: v1.1.0
