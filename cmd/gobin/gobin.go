@@ -10,12 +10,12 @@ import (
 	"strings"
 	"syscall"
 
-	oapp "github.com/getoutreach/gobox/pkg/app"
-	"github.com/getoutreach/gobox/pkg/cfg"
-	olog "github.com/getoutreach/gobox/pkg/log"
-	"github.com/getoutreach/gobox/pkg/secrets"
-	"github.com/getoutreach/gobox/pkg/trace"
-	"github.com/getoutreach/gobox/pkg/updater"
+	"github.com/getoutreach/eng/v2/pkg/updater"
+	oapp "github.com/getoutreach/go-outreach/v2/pkg/app"
+	"github.com/getoutreach/go-outreach/v2/pkg/cfg"
+	olog "github.com/getoutreach/go-outreach/v2/pkg/log"
+	"github.com/getoutreach/go-outreach/v2/pkg/secrets"
+	"github.com/getoutreach/go-outreach/v2/pkg/trace"
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
 	"gopkg.in/yaml.v2"
@@ -48,7 +48,7 @@ func overrideConfigLoaders() {
 	olog.SetOutput(ioutil.Discard)
 
 	fallbackConfigReader := cfg.DefaultReader()
-	cfg.SetDefaultReader(cfg.Reader(func(fileName string) ([]byte, error) {
+	cfg.SetDefaultReader(func(fileName string) ([]byte, error) {
 		if fileName == "trace.yaml" {
 			traceConfig := &trace.Config{
 				Honeycomb: trace.Honeycomb{
@@ -71,7 +71,7 @@ func overrideConfigLoaders() {
 		}
 
 		return fallbackConfigReader(fileName)
-	}))
+	})
 }
 
 func main() { //nolint:funlen
