@@ -2,11 +2,13 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"os/signal"
 	"os/user"
 	"runtime"
+	"runtime/debug"
 	"strings"
 	"syscall"
 
@@ -18,7 +20,7 @@ import (
 	"github.com/getoutreach/gobox/pkg/updater"
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
-	"gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v3"
 
 	// Place any extra imports for your startup code here
 	///Block(imports)
@@ -48,7 +50,7 @@ func overrideConfigLoaders() {
 	olog.SetOutput(ioutil.Discard)
 
 	fallbackConfigReader := cfg.DefaultReader()
-	cfg.SetDefaultReader(cfg.Reader(func(fileName string) ([]byte, error) {
+	cfg.SetDefaultReader(func(fileName string) ([]byte, error) {
 		if fileName == "trace.yaml" {
 			traceConfig := &trace.Config{
 				Honeycomb: trace.Honeycomb{
@@ -71,10 +73,16 @@ func overrideConfigLoaders() {
 		}
 
 		return fallbackConfigReader(fileName)
-	}))
+	})
 }
 
 func main() { //nolint:funlen
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Println("stacktrace from panic: \n" + string(debug.Stack()))
+		}
+	}()
+
 	ctx, cancel := context.WithCancel(context.Background())
 	log := logrus.New()
 
