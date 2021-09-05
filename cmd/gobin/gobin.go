@@ -2,11 +2,13 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"os/signal"
 	"os/user"
 	"runtime"
+	"runtime/debug"
 	"strings"
 	"syscall"
 
@@ -18,7 +20,7 @@ import (
 	"github.com/getoutreach/gobox/pkg/updater"
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
-	"gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v3"
 
 	// Place any extra imports for your startup code here
 	///Block(imports)
@@ -48,7 +50,7 @@ func overrideConfigLoaders() {
 	olog.SetOutput(ioutil.Discard)
 
 	fallbackConfigReader := cfg.DefaultReader()
-	cfg.SetDefaultReader(cfg.Reader(func(fileName string) ([]byte, error) {
+	cfg.SetDefaultReader(func(fileName string) ([]byte, error) {
 		if fileName == "trace.yaml" {
 			traceConfig := &trace.Config{
 				Honeycomb: trace.Honeycomb{
@@ -71,10 +73,16 @@ func overrideConfigLoaders() {
 		}
 
 		return fallbackConfigReader(fileName)
-	}))
+	})
 }
 
 func main() { //nolint:funlen
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Println("stacktrace from panic: \n" + string(debug.Stack()))
+		}
+	}()
+
 	ctx, cancel := context.WithCancel(context.Background())
 	log := logrus.New()
 
@@ -101,11 +109,16 @@ func main() { //nolint:funlen
 	///Block(init)
 	///EndBlock(init)
 
+	// optional cleanup function for use after NeedsUpdate
+	// this function is re-defined later when NeedsUpdate is true
+	cleanup := func() {}
+
 	exit := func() {
 		trace.End(ctx)
 		trace.CloseTracer(ctx)
 		///Block(exit)
 		///EndBlock(exit)
+		cleanup()
 		os.Exit(exitCode)
 	}
 	defer exit()
@@ -192,10 +205,25 @@ func main() { //nolint:funlen
 
 		// restart when updated
 		if updater.NeedsUpdate(traceCtx, log, "", oapp.Version, c.Bool("skip-update"), c.Bool("debug"), c.Bool("enable-prereleases"), c.Bool("force-update-check")) {
-			log.Infof("gobin has been updated, please re-run your command")
+			// replace running process(execve)
+			switch runtime.GOOS {
+			case "linux", "darwin":
+				cleanup = func() {
+					log.Infof("gobin has been updated")
+					osarg0 := os.Args[0]
+					err := syscall.Exec(osarg0, os.Args, os.Environ())
+					if err != nil {
+						log.WithError(err).Error("failed to execute updated binary")
+					}
+				}
+			default:
+				log.Infof("gobin has been updated, please re-run your command")
+			}
+
 			exitCode = 5
 			trace.EndCall(traceCtx)
 			exit()
+			return nil
 		}
 
 		return nil
