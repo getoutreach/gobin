@@ -1,6 +1,6 @@
 module github.com/getoutreach/gobin
 
-go 1.14
+go 1.16
 
 require (
 	github.com/getoutreach/gobox v1.11.0
