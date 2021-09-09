@@ -5,4 +5,4 @@ deployToProd: false
 commands:
   - gobin
 versions:
-  go: 1.16.7
+  go: 1.16.5
