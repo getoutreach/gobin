@@ -3,7 +3,7 @@ module github.com/getoutreach/gobin
 go 1.16
 
 require (
-	github.com/getoutreach/gobox v1.11.0
+	github.com/getoutreach/gobox v1.13.0
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/klauspost/compress v1.11.9 // indirect
 	github.com/pkg/errors v0.9.1
