@@ -1,3 +1,9 @@
+// Copyright 2021 Outreach Corporation. All Rights Reserved.
+
+// Description: This file is the entrypoint for the gobin CLI
+// command for gobin.
+// Managed: true
+
 package main
 
 import (
@@ -28,15 +34,15 @@ import (
 	///EndBlock(imports)
 )
 
-// Why: We can't compile in things as a const.
-//nolint:gochecknoglobals
-var (
-	HoneycombTracingKey = "NOTSET"
-)
+// HoneycombTracingKey gets set by the Makefile at compile-time which is pulled
+// down by devconfig.sh.
+var HoneycombTracingKey = "NOTSET" //nolint:gochecknoglobals // Why: We can't compile in things as a const.
 
 ///Block(global)
 ///EndBlock(global)
 
+// overrideConfigLoaders fakes certain parts of the config that usually get pulled
+// in via mechanisms that don't make sense to use in CLIs.
 func overrideConfigLoaders() {
 	var fallbackSecretLookup func(context.Context, string) ([]byte, error)
 	fallbackSecretLookup = secrets.SetDevLookup(func(ctx context.Context, key string) ([]byte, error) {
@@ -76,7 +82,7 @@ func overrideConfigLoaders() {
 	})
 }
 
-func main() { //nolint:funlen
+func main() { //nolint:funlen // Why: We can't dwindle this down anymore without adding complexity.
 	defer func() {
 		if r := recover(); r != nil {
 			fmt.Println("stacktrace from panic: \n" + string(debug.Stack()))
@@ -200,7 +206,7 @@ func main() { //nolint:funlen
 		})
 
 		// restart when updated
-		traceCtx := trace.StartCall(c.Context, "updater.NeedsUpdate") //nolint:govet
+		traceCtx := trace.StartCall(c.Context, "updater.NeedsUpdate")
 		defer trace.EndCall(traceCtx)
 
 		// restart when updated
@@ -231,7 +237,7 @@ func main() { //nolint:funlen
 
 	if err := app.RunContext(ctx, os.Args); err != nil {
 		log.Errorf("failed to run: %v", err)
-		//nolint:errcheck // We're attaching the error to the trace.
+		//nolint:errcheck // Why: We're attaching the error to the trace.
 		trace.SetCallStatus(ctx, err)
 		exitCode = 1
 
