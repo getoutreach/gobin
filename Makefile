@@ -1,4 +1,5 @@
 APP := gobin
+OSS := false
 _ := $(shell ./scripts/bootstrap-lib.sh) 
 
 include .bootstrap/root/Makefile
