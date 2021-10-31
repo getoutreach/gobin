@@ -1,3 +1,9 @@
+// Copyright 2021 Outreach Corporation. All Rights Reserved.
+
+// Description: This file is the entrypoint for the gobin CLI
+// command for gobin.
+// Managed: true
+
 package main
 
 import (
@@ -14,6 +20,7 @@ import (
 
 	oapp "github.com/getoutreach/gobox/pkg/app"
 	"github.com/getoutreach/gobox/pkg/cfg"
+	"github.com/getoutreach/gobox/pkg/exec"
 	olog "github.com/getoutreach/gobox/pkg/log"
 	"github.com/getoutreach/gobox/pkg/secrets"
 	"github.com/getoutreach/gobox/pkg/trace"
@@ -28,15 +35,15 @@ import (
 	///EndBlock(imports)
 )
 
-// Why: We can't compile in things as a const.
-//nolint:gochecknoglobals
-var (
-	HoneycombTracingKey = "NOTSET"
-)
+// HoneycombTracingKey gets set by the Makefile at compile-time which is pulled
+// down by devconfig.sh.
+var HoneycombTracingKey = "NOTSET" //nolint:gochecknoglobals // Why: We can't compile in things as a const.
 
 ///Block(global)
 ///EndBlock(global)
 
+// overrideConfigLoaders fakes certain parts of the config that usually get pulled
+// in via mechanisms that don't make sense to use in CLIs.
 func overrideConfigLoaders() {
 	var fallbackSecretLookup func(context.Context, string) ([]byte, error)
 	fallbackSecretLookup = secrets.SetDevLookup(func(ctx context.Context, key string) ([]byte, error) {
@@ -76,13 +83,7 @@ func overrideConfigLoaders() {
 	})
 }
 
-func main() { //nolint:funlen
-	defer func() {
-		if r := recover(); r != nil {
-			fmt.Println("stacktrace from panic: \n" + string(debug.Stack()))
-		}
-	}()
-
+func main() { //nolint:funlen // Why: We can't dwindle this down anymore without adding complexity.
 	ctx, cancel := context.WithCancel(context.Background())
 	log := logrus.New()
 
@@ -123,13 +124,16 @@ func main() { //nolint:funlen
 	}
 	defer exit()
 
-	// wrap everything around a call as this ensures any panics
-	// are caught and recorded properly
+	// Print a stack trace when a panic occurs and set the exit code
 	defer func() {
 		if r := recover(); r != nil {
-			log.Errorf("panic %v", r)
+			fmt.Println("stacktrace from panic: \n" + string(debug.Stack()))
+
+			// Go sets panic exit codes to 2
+			exitCode = 2
 		}
 	}()
+
 	ctx = trace.StartCall(ctx, "main")
 	defer trace.EndCall(ctx)
 
@@ -200,20 +204,31 @@ func main() { //nolint:funlen
 		})
 
 		// restart when updated
-		traceCtx := trace.StartCall(c.Context, "updater.NeedsUpdate") //nolint:govet
+		traceCtx := trace.StartCall(c.Context, "updater.NeedsUpdate")
 		defer trace.EndCall(traceCtx)
 
 		// restart when updated
 		if updater.NeedsUpdate(traceCtx, log, "", oapp.Version, c.Bool("skip-update"), c.Bool("debug"), c.Bool("enable-prereleases"), c.Bool("force-update-check")) {
-			// replace running process(execve)
 			switch runtime.GOOS {
 			case "linux", "darwin":
 				cleanup = func() {
-					log.Infof("gobin has been updated")
-					osarg0 := os.Args[0]
-					err := syscall.Exec(osarg0, os.Args, os.Environ())
+					binPath, err := exec.ResolveExecuable(os.Args[0])
 					if err != nil {
-						log.WithError(err).Error("failed to execute updated binary")
+						log.WithError(err).Warn("Failed to find binary location, please re-run your command manually")
+						return
+					}
+
+					args := []string{}
+					if len(os.Args) > 1 {
+						args = os.Args[1:]
+					}
+
+					log.WithField("bin.path", binPath).Infof("gobin has been updated, re-running automatically")
+
+					//nolint:gosec // Why: We're passing in os.Args
+					if err := syscall.Exec(binPath, args, os.Environ()); err != nil {
+						log.WithError(err).Warn("failed to re-run binary, please re-run your command manually")
+						return
 					}
 				}
 			default:
@@ -231,7 +246,7 @@ func main() { //nolint:funlen
 
 	if err := app.RunContext(ctx, os.Args); err != nil {
 		log.Errorf("failed to run: %v", err)
-		//nolint:errcheck // We're attaching the error to the trace.
+		//nolint:errcheck // Why: We're attaching the error to the trace.
 		trace.SetCallStatus(ctx, err)
 		exitCode = 1
 
