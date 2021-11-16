@@ -1,6 +1,7 @@
 name: gobin
 reportingTeam: "cia-dev-tooling"
 library: true
+oss: true
 deployToProd: false
 commands:
   - gobin
