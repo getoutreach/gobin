@@ -97,7 +97,6 @@ func Run(ctx context.Context, importPath string, printPath bool) error { //nolin
 	if _, err := os.Stat(binPath); err != nil {
 		// Otherwise clone the repo, and build it
 		cleanupFn, sourceDir, err := downloadRepository(ctx, m)
-		defer cleanupFn()
 		if err != nil {
 			return err
 		}
@@ -106,6 +105,10 @@ func Run(ctx context.Context, importPath string, printPath bool) error { //nolin
 		if err != nil {
 			return err
 		}
+
+		// only cleanup the repository if we succeeded, otherwise leave
+		// so it can be, potentially, inspected.
+		defer cleanupFn()
 	}
 
 	if printPath {
