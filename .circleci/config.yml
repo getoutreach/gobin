@@ -1,7 +1,7 @@
 version: 2.1
 
 orbs:
-  shared: getoutreach/shared@1.31.1
+  shared: getoutreach/shared@1.33.0
 
 # DEPRECATED: Use the devbase orb instead:
 # https://github.com/getoutreach/devbase/tree/main/orbs/shared
@@ -23,9 +23,8 @@ jobs:
   test:
     executor:
       name: shared/testbed-docker
-      go_version: 1.16.5
     docker:
-      - image: gcr.io/outreach-docker/bootstrap/testbed:1.16.5
+      - image: gcr.io/outreach-docker/bootstrap/ci:1.17.1
         auth:
           username: _json_key
           password: $GCLOUD_SERVICE_ACCOUNT
@@ -33,8 +32,7 @@ jobs:
       ###Block(testEnvVars)
       ###EndBlock(testEnvVars)
     steps:
-      - shared/setup_environment:
-          setup_remote_docker: true
+      - shared/setup_environment
       - run:
           name: Wait for Infrastructure to be Ready
           command: ./scripts/shell-wrapper.sh ci/testing/wait-for-infra.sh
@@ -52,10 +50,8 @@ jobs:
   release-dryrun:
     executor:
       name: shared/testbed-docker
-      go_version: 1.16.5
     steps:
-      - shared/setup_environment:
-          setup_remote_docker: true
+      - shared/setup_environment
       - shared/with_node_cache:
           save: true
       - run:
@@ -64,20 +60,17 @@ jobs:
   release:
     executor:
       name: shared/testbed-docker
-      go_version: 1.16.5
     steps:
-      - shared/setup_environment:
-          setup_remote_docker: true
+      - shared/setup_environment
       - shared/with_node_cache:
           save: true
       - run:
           name: Release
-          command: GH_TOKEN=$OUTREACH_GITHUB_TOKEN yarn --frozen-lockfile semantic-release
+          command: ./scripts/shell-wrapper.sh ci/release/release.sh
 
   trigger_documentation:
     executor:
       name: shared/testbed-docker
-      go_version: 1.16.5
     steps:
       - shared/setup_environment
       - shared/with_go_cache
@@ -97,6 +90,8 @@ workflows:
           context:
             - docker-registry
             - npm-credentials
+            - github-credentials
+            - package-cloud-credentials
           requires:
             - test
           ###Block(circleReleaseRequires)
@@ -110,6 +105,8 @@ workflows:
           context:
             - docker-registry
             - npm-credentials
+            - github-credentials
+            - package-cloud-credentials
           filters:
             branches:
               ignore:
