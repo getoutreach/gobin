@@ -1,9 +1,10 @@
 package gobin
 
 import (
+	"bufio"
+	"bytes"
 	"context"
 	"fmt"
-	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -97,7 +98,6 @@ func Run(ctx context.Context, importPath string, printPath bool) error { //nolin
 	if _, err := os.Stat(binPath); err != nil {
 		// Otherwise clone the repo, and build it
 		cleanupFn, sourceDir, err := downloadRepository(ctx, m)
-		defer cleanupFn()
 		if err != nil {
 			return err
 		}
@@ -106,6 +106,10 @@ func Run(ctx context.Context, importPath string, printPath bool) error { //nolin
 		if err != nil {
 			return err
 		}
+
+		// only cleanup the repository if we succeeded, otherwise leave
+		// so it can be, potentially, inspected.
+		defer cleanupFn()
 	}
 
 	if printPath {
@@ -138,25 +142,11 @@ func buildRepository(ctx context.Context, sourceDir string, m *Module) error {
 		return err
 	}
 
-	// Copy .tool-versions for asdf go version support
-	// if it exists
-	if _, err := os.Stat(toolVersions); err == nil { //nolint:govet // Why: We're ok shadowing err
-		f, err := os.Open(toolVersions)
-		if err != nil {
-			return err
-		}
-		defer f.Close()
-
-		nf, err := os.Create(filepath.Join(sourceDir, toolVersions))
-		if err != nil {
-			return err
-		}
-		defer nf.Close()
-
-		_, err = io.Copy(nf, f)
-		if err != nil {
-			return err
-		}
+	// ensure we have a .tool-versions in the directory we're temporarily
+	// building this source code in, based off of the current versions of tools
+	// if we have asdf installed.
+	if err := generateToolVersions(ctx, sourceDir); err != nil {
+		return errors.Wrap(err, "failed to setup asdf integration")
 	}
 
 	cmd := exec.CommandContext(ctx, "go", "build", "-o", binPath, "./"+m.GetCommandPath())
@@ -166,6 +156,46 @@ func buildRepository(ctx context.Context, sourceDir string, m *Module) error {
 		fmt.Fprintln(os.Stderr, string(b))
 	}
 	return err
+}
+
+// generateToolVersions generates a .tool-versions off of the output of asdf current
+// or, if asdf is not installed, noops instead. asdf current is used to allow us to keep
+// normal .tool-verisons backtracking resolution behaviour for asdf to parse but allow
+// us to run in a different, non-related directory tree.
+func generateToolVersions(ctx context.Context, outputDir string) error {
+	if path, err := exec.LookPath("asdf"); err != nil || path == "" {
+		return nil
+	}
+
+	cmd := exec.CommandContext(ctx, "asdf", "current")
+	out, err := cmd.Output()
+	if err != nil {
+		return errors.Wrap(err, "failed to get versions from asdf current")
+	}
+
+	tvp := filepath.Join(outputDir, toolVersions)
+	f, err := os.Create(tvp)
+	if err != nil {
+		return errors.Wrapf(err, "failed to create %s", tvp)
+	}
+	defer f.Close()
+
+	scanner := bufio.NewScanner(bytes.NewReader(out))
+	for scanner.Scan() {
+		// https://goplay.space/#ewwP-RaSyFd
+		spl := strings.Fields(scanner.Text())
+		if len(spl) != 3 {
+			continue
+		}
+
+		lang := spl[0]
+		version := spl[1]
+
+		if _, err := f.Write([]byte(fmt.Sprintf("%s %s\n", lang, version))); err != nil {
+			return errors.Wrap(err, "failed to write to .tool-versions in tempDir")
+		}
+	}
+	return scanner.Err()
 }
 
 func downloadRepository(_ context.Context, m *Module) (func(), string, error) { //nolint:gocritic // Why: These seem fine.

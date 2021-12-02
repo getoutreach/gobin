@@ -5,5 +5,3 @@ oss: true
 deployToProd: false
 commands:
   - gobin
-versions:
-  go: 1.16.5
