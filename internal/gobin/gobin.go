@@ -191,7 +191,9 @@ func generateToolVersions(ctx context.Context, outputDir string) error {
 		lang := spl[0]
 		version := spl[1]
 
-		f.Write([]byte(fmt.Sprintf("%s %s\n", lang, version)))
+		if _, err := f.Write([]byte(fmt.Sprintf("%s %s\n", lang, version))); err != nil {
+			return errors.Wrap(err, "failed to write to .tool-versions in tempDir")
+		}
 	}
 	return scanner.Err()
 }
