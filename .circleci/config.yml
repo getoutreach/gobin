@@ -1,7 +1,6 @@
 version: 2.1
-
 orbs:
-  shared: getoutreach/shared@1.33.0
+  shared: getoutreach/shared@1.37.1
 
 # DEPRECATED: Use the devbase orb instead:
 # https://github.com/getoutreach/devbase/tree/main/orbs/shared
@@ -24,7 +23,7 @@ jobs:
     executor:
       name: shared/testbed-docker
     docker:
-      - image: gcr.io/outreach-docker/bootstrap/ci:1.17.1
+      - image: gcr.io/outreach-docker/bootstrap/ci:stable
         auth:
           username: _json_key
           password: $GCLOUD_SERVICE_ACCOUNT
@@ -50,6 +49,7 @@ jobs:
   release-dryrun:
     executor:
       name: shared/testbed-docker
+      docker_tag: stable
     steps:
       - shared/setup_environment
       - shared/with_node_cache:
@@ -60,6 +60,7 @@ jobs:
   release:
     executor:
       name: shared/testbed-docker
+      docker_tag: stable
     steps:
       - shared/setup_environment
       - shared/with_node_cache:
@@ -71,6 +72,7 @@ jobs:
   trigger_documentation:
     executor:
       name: shared/testbed-docker
+      docker_tag: stable
     steps:
       - shared/setup_environment
       - shared/with_go_cache
@@ -90,7 +92,7 @@ workflows:
           context:
             - docker-registry
             - npm-credentials
-            - github-credentials
+            - ghaccesstoken
             - package-cloud-credentials
           requires:
             - test
@@ -105,7 +107,7 @@ workflows:
           context:
             - docker-registry
             - npm-credentials
-            - github-credentials
+            - ghaccesstoken
             - package-cloud-credentials
           filters:
             branches:
@@ -114,10 +116,12 @@ workflows:
                 - main
       - test:
           context:
+            - ghaccesstoken
             - docker-registry
             - npm-credentials
       - trigger_documentation:
           context:
+            - ghaccesstoken
             - docker-registry
           filters:
             branches:
