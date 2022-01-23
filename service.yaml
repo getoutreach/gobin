@@ -1,7 +1,21 @@
 name: gobin
-reportingTeam: "cia-dev-tooling"
-library: true
+reportingTeam: cia-dev-tooling
+description: ""
 oss: true
-deployToProd: false
+slack: ""
+library: true
 commands:
   - gobin
+releaseType: ""
+deployTo:
+  environments: []
+arguments:
+  dependencies:
+    optional: []
+    required: []
+  description: ""
+  reportingTeam: cia-dev-tooling
+  type: []
+modules:
+  - url: https://github.com/getoutreach/stencil-base
+    version: ""

@@ -37,7 +37,6 @@ require (
 	github.com/mitchellh/colorstring v0.0.0-20190213212951-d06e56a500db // indirect
 	github.com/prometheus/client_golang v1.11.0 // indirect
 	github.com/prometheus/client_model v0.2.0 // indirect
-	github.com/prometheus/common v0.31.1 // indirect
 	github.com/prometheus/procfs v0.6.0 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/russross/blackfriday/v2 v2.0.1 // indirect
@@ -45,7 +44,6 @@ require (
 	github.com/shurcooL/sanitized_anchor_name v1.0.0 // indirect
 	github.com/vmihailenco/msgpack/v5 v5.3.4 // indirect
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
-	golang.org/x/crypto v0.0.0-20210817164053-32db794688a5 // indirect
 	golang.org/x/net v0.0.0-20210913180222-943fd674d43e // indirect
 	golang.org/x/oauth2 v0.0.0-20210514164344-f6687ab2804c // indirect
 	golang.org/x/sys v0.0.0-20210910150752-751e447fb3d0 // indirect
@@ -55,4 +53,9 @@ require (
 	gopkg.in/alexcesaro/statsd.v2 v2.0.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
+)
+
+require (
+	github.com/prometheus/common v0.32.1 // indirect
+	golang.org/x/crypto v0.0.0-20211108221036-ceb1ce70b4fa // indirect
 )
