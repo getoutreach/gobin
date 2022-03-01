@@ -1,5 +1,5 @@
 name: gobin
-reportingTeam: "cia-dev-tooling"
+reportingTeam: "fnd-dtss"
 library: true
 oss: true
 deployToProd: false
