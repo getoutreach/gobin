@@ -110,8 +110,6 @@ func Run(ctx context.Context, fullPath, buildDir, buildPath string, printPath bo
 	if _, err := os.Stat(binPath); err != nil {
 		// Otherwise clone the repo, and build it
 		cleanupFn, sourceDir, err := downloadRepository(ctx, m)
-		fmt.Printf("Downloaded repository at %q\n", sourceDir)
-
 		if err != nil {
 			return err
 		}
