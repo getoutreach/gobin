@@ -1,3 +1,9 @@
+// Copyright 2022 Outreach Corporation. All Rights Reserved.
+
+// Description: See package description for one-file package.
+
+// Package gobin implements retrieving, downloading, and running go binaries
+// using a remote path and version.
 package gobin
 
 import (
@@ -16,11 +22,16 @@ import (
 	"golang.org/x/tools/go/vcs"
 )
 
+// golangVerOutReg parses `go version`.
 var golangVerOutReg = regexp.MustCompile(` go(\d.+) `)
+
+// removeVersion removes version from a module path.
 var removeVersion = regexp.MustCompile(`^/(v\d+)/`)
 
+// toolVersions is the file name for asdf tool versions declarations.
 const toolVersions = ".tool-versions"
 
+// Module represents a Go module.
 type Module struct {
 	// The unmodified/parsed import path, includes the command, if present
 	OriginalImport string
@@ -63,7 +74,8 @@ func (m *Module) GetBinaryCache() (string, error) {
 	return binPath, nil
 }
 
-func Run(ctx context.Context, importPath string, printPath bool) error { //nolint:funlen
+// Run actually performs the binary retrieval, installation, and running.
+func Run(ctx context.Context, importPath string, printPath bool) error { //nolint:funlen,lll // Why: Not necessary to break up.
 	ref := ""
 	verSplit := strings.SplitN(importPath, "@", 2)
 	if len(verSplit) == 2 {
@@ -121,6 +133,7 @@ func Run(ctx context.Context, importPath string, printPath bool) error { //nolin
 	return nil
 }
 
+// getCurrentGoVersion retrieves the current go version running on the host.
 func getCurrentGoVersion() (string, error) {
 	cmd := exec.Command("go", "version")
 	b, err := cmd.CombinedOutput()
@@ -136,6 +149,7 @@ func getCurrentGoVersion() (string, error) {
 	return ver[1], nil
 }
 
+// buildRepository builds a go repository.
 func buildRepository(ctx context.Context, sourceDir string, m *Module) error {
 	binPath, err := m.GetBinaryCache()
 	if err != nil {
@@ -191,17 +205,18 @@ func generateToolVersions(ctx context.Context, outputDir string) error {
 		lang := spl[0]
 		version := spl[1]
 
-		if _, err := f.Write([]byte(fmt.Sprintf("%s %s\n", lang, version))); err != nil {
+		if _, err := fmt.Fprintf(f, "%s %s\n", lang, version); err != nil {
 			return errors.Wrap(err, "failed to write to .tool-versions in tempDir")
 		}
 	}
 	return scanner.Err()
 }
 
+// downloadRepository downloads a repository into a temporary directory.
 func downloadRepository(_ context.Context, m *Module) (func(), string, error) { //nolint:gocritic // Why: These seem fine.
 	sourceDir := filepath.Join(os.TempDir(), "gobin", time.Now().Format(time.RFC3339Nano))
 	cleanupFn := func() { os.RemoveAll(sourceDir) }
-	err := os.MkdirAll(filepath.Dir(sourceDir), 0755)
+	err := os.MkdirAll(filepath.Dir(sourceDir), 0o755)
 	if err != nil {
 		return cleanupFn, "", err
 	}
