@@ -1,26 +1,17 @@
 # gobin
 
-[![go.dev reference](https://img.shields.io/badge/go.dev-reference-007d9c?logo=go&logoColor=white)](https://engdocs.outreach.cloud/github.com/getoutreach/gobin)
-[![CircleCI](https://circleci.com/gh/getoutreach/gobin.svg?style=shield&circle-token=<YOUR_STATUS_API_TOKEN:READ:https://circleci.com/docs/2.0/status-badges/>)](https://circleci.com/gh/getoutreach/gobin)
+[![go.dev reference](https://img.shields.io/badge/go.dev-reference-007d9c?logo=go&logoColor=white)](https://pkg.go.dev/github.com/getoutreach/gobin)
 [![Generated via Bootstrap](https://img.shields.io/badge/Outreach-Bootstrap-%235951ff)](https://github.com/getoutreach/bootstrap)
+[![Coverage Status](https://coveralls.io/repos/github/getoutreach/gobin/badge.svg?branch=main)](https://coveralls.io/github//getoutreach/gobin?branch=main)
 
-<!--- Block(description) -->
-<!--- EndBlock(description) -->
+Downloads, compiles, and runs (or just returns the binary path) of go applications.
 
-----
+## Contributing
 
-[Developing and contributing changes](CONTRIBUTING.md) |
-[Generated Documentation](https://engdocs.outreach.cloud/github.com/getoutreach/gobin/)
+Please read the [CONTRIBUTING.md](CONTRIBUTING.md) document for guidelines on developing and contributing changes.
 
-<!--- Block(custom) -->
-`gobin` downloads and runs Go repositories just in time.
-<!--- EndBlock(custom) -->
+## High-level Overview
 
-## Dependencies and Setup
+<!--- Block(overview) -->
 
-### Dependencies
-
-Make sure you've followed the [Launch Plan](https://outreach-io.atlassian.net/wiki/spaces/EN/pages/695698940/Launch+Plan).
-
-<!--- Block(dependencies) -->
-<!--- EndBlock(dependencies) -->
+<!--- EndBlock(overview) -->

@@ -1,7 +1,56 @@
 name: gobin
-reportingTeam: "fnd-dtss"
-library: true
+reportingTeam: fnd-dtss
+description: Downloads, compiles, and runs (or just returns the binary path) of go applications.
 oss: true
-deployToProd: false
+slack: dev-tooling-notifications
+library: true
 commands:
   - gobin
+circleAPIKey: ""
+lintroller: platinum
+releaseType: ""
+deployTo:
+  environments: []
+arguments:
+  circleAPIKey: ""
+  commands:
+    - gobin
+  dependencies:
+    optional: []
+    required: []
+  description: Downloads, compiles, and runs (or just returns the binary path) of go applications.
+  grpcClients: []
+  kubernetes:
+    groups: []
+  lintroller: platinum
+  opslevel:
+    confluenceSpaceKey: ""
+    datadogDashboards:
+      mainLink: ""
+    designDocumentLink: ""
+  oss: true
+  releaseOptions:
+    allowMajorVersions: null
+    enablePrereleases: false
+  reportingTeam: fnd-dtss
+  service: false
+  tutorial: false
+  vaultSecrets:
+    - deploy/honeycomb_new/%(environment)s/honeycomb
+    - deploy/launchdarkly/%(environment)s/launchdarkly
+    - deploy/mint/%(environment)s/validation/mint-validator-payload
+    - deploy/flagship-shared-secret/%(environment)s/authn-flagship-payload
+modules:
+  - name: github.com/getoutreach/stencil-outreach
+  - name: github.com/getoutreach/stencil-base
+  - name: github.com/getoutreach/stencil-golang
+  - name: github.com/getoutreach/stencil-opslevel
+opsLevel:
+  serviceTier: 0
+  lifecycle: ""
+  confluenceSpaceKey: ""
+  pagerDutyLink: ""
+  datadogDashboards:
+    mainLink: ""
+    custom: []
+  designDocumentLink: ""

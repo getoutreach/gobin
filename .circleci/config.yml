@@ -1,7 +1,6 @@
 version: 2.1
-
 orbs:
-  shared: getoutreach/shared@1.33.0
+  shared: getoutreach/shared@1.64.3
 
 # DEPRECATED: Use the devbase orb instead:
 # https://github.com/getoutreach/devbase/tree/main/orbs/shared
@@ -23,11 +22,15 @@ jobs:
   test:
     executor:
       name: shared/testbed-docker
+    ###Block(circleTestOverride)
+    ###EndBlock(circleTestOverride)
     docker:
-      - image: gcr.io/outreach-docker/bootstrap/ci:1.17.1
+      - image: gcr.io/outreach-docker/bootstrap/ci:stable
         auth:
           username: _json_key
           password: $GCLOUD_SERVICE_ACCOUNT
+    ###Block(customContainers)
+    ###EndBlock(customContainers)
     environment:
       ###Block(testEnvVars)
       ###EndBlock(testEnvVars)
@@ -43,13 +46,49 @@ jobs:
           command: make test | tee ${TEST_RESULTS}/go-test.out
       - run:
           name: Upload Code Coverage
-          command: ./scripts/shell-wrapper.sh ci/testing/coveralls.sh
+          command: ./scripts/shell-wrapper.sh ci/testing/coveralls.sh test
       - shared/save_go_cache # We save at the end because binaries are included with this
-      - shared/upload_test_results
+      - shared/upload_test_results # Uploads to CircleCI
+
+  finalize-coverage:
+    executor:
+      name: shared/testbed-docker
+    docker:
+      - image: gcr.io/outreach-docker/bootstrap/ci:stable
+        auth:
+          username: _json_key
+          password: $GCLOUD_SERVICE_ACCOUNT
+    steps:
+      - shared/setup_environment
+      - run:
+          name: Finish Coveralls upload
+          command: ./scripts/shell-wrapper.sh ci/testing/coveralls-finish.sh
+
+  e2e:
+    executor:
+      name: shared/testbed-machine
+    environment:
+      VAULT_ADDR: https://vault-dev.outreach.cloud
+    resource_class: large
+    steps:
+      - shared/setup_environment:
+          machine: true
+      - shared/with_go_cache
+      - run:
+          name: Run E2E Tests
+          command: KUBECONFIG="$HOME/.outreach/kubeconfig.yaml" make e2e | tee ${TEST_RESULTS}/go-test.out
+      - run:
+          name: Upload Code Coverage
+          command: ./scripts/shell-wrapper.sh ci/testing/coveralls.sh e2e
+      - shared/save_go_cache # We save at the end because binaries are included with this
+      - shared/upload_test_results # Uploads to CircleCI
 
   release-dryrun:
     executor:
       name: shared/testbed-docker
+      docker_tag: stable
+    ###Block(releaseDryRun)
+    ###EndBlock(releaseDryRun)
     steps:
       - shared/setup_environment
       - shared/with_node_cache:
@@ -60,6 +99,9 @@ jobs:
   release:
     executor:
       name: shared/testbed-docker
+      docker_tag: stable
+    ###Block(release)
+    ###EndBlock(release)
     steps:
       - shared/setup_environment
       - shared/with_node_cache:
@@ -68,14 +110,15 @@ jobs:
           name: Release
           command: ./scripts/shell-wrapper.sh ci/release/release.sh
 
-  trigger_documentation:
+  publish_docs:
     executor:
       name: shared/testbed-docker
+      docker_tag: stable
     steps:
       - shared/setup_environment
       - shared/with_go_cache
       - run:
-          name: Trigger Documentation Update
+          name: Publish Documentation
           command: ./scripts/shell-wrapper.sh ci/release/docs.sh
 
 workflows:
@@ -90,7 +133,7 @@ workflows:
           context:
             - docker-registry
             - npm-credentials
-            - github-credentials
+            - ghaccesstoken
             - package-cloud-credentials
           requires:
             - test
@@ -105,7 +148,7 @@ workflows:
           context:
             - docker-registry
             - npm-credentials
-            - github-credentials
+            - ghaccesstoken
             - package-cloud-credentials
           filters:
             branches:
@@ -114,13 +157,31 @@ workflows:
                 - main
       - test:
           context:
+            - ghaccesstoken
             - docker-registry
             - npm-credentials
-      - trigger_documentation:
+            ###Block(circleTestContext)
+            ###EndBlock(circleTestContext)
+      - publish_docs:
           context:
+            - ghaccesstoken
             - docker-registry
+            - confluence
           filters:
             branches:
               ignore: /.*/
             tags:
               only: /v[0-9]+(\.[0-9]+)*(-.*)*/
+      - e2e:
+          context:
+            - docker-registry
+            - ghaccesstoken
+            - vault-dev
+            - aws-credentials
+      - finalize-coverage:
+          context:
+            - docker-registry
+            - ghaccesstoken
+          requires:
+            - e2e
+            - test

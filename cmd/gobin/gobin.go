@@ -1,4 +1,4 @@
-// Copyright 2021 Outreach Corporation. All Rights Reserved.
+// Copyright 2022 Outreach Corporation. All Rights Reserved.
 
 // Description: This file is the entrypoint for the gobin CLI
 // command for gobin.
@@ -24,12 +24,19 @@ import (
 // down by devconfig.sh.
 var HoneycombTracingKey = "NOTSET" //nolint:gochecknoglobals // Why: We can't compile in things as a const.
 
+// TeleforkAPIKey gets set by the Makefile at compile-time which is pulled
+// down by devconfig.sh.
+var TeleforkAPIKey = "NOTSET" //nolint:gochecknoglobals // Why: We can't compile in things as a const.
+
 ///Block(honeycombDataset)
+
+// HoneycombDataset refers to a custom honeycomb dataset to store traces in, if applicable.
 const HoneycombDataset = ""
 
 ///EndBlock(honeycombDataset)
 
 ///Block(global)
+
 ///EndBlock(global)
 
 func main() {
@@ -37,6 +44,7 @@ func main() {
 	log := logrus.New()
 
 	///Block(init)
+
 	///EndBlock(init)
 
 	app := cli.App{
@@ -58,12 +66,14 @@ func main() {
 	}
 	app.Commands = []*cli.Command{
 		///Block(commands)
+
 		///EndBlock(commands)
 	}
 
 	///Block(postApp)
+
 	///EndBlock(postApp)
 
 	// Insert global flags, tracing, updating and start the application.
-	gcli.HookInUrfaveCLI(ctx, cancel, &app, log, HoneycombTracingKey, HoneycombDataset)
+	gcli.HookInUrfaveCLI(ctx, cancel, &app, log, HoneycombTracingKey, HoneycombDataset, TeleforkAPIKey)
 }
