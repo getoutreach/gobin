@@ -52,7 +52,7 @@ func main() {
 		Name:    "gobin",
 		///Block(app)
 		Action: func(c *cli.Context) error {
-			return gobin.Run(c.Context, c.Args().First(), c.Bool("print-path"))
+			return gobin.Run(c.Context, c.Args().First(), c.String("build-dir"), c.String("build-path"), c.Bool("print-path"))
 		},
 		///EndBlock(app)
 	}
@@ -61,6 +61,14 @@ func main() {
 		&cli.BoolFlag{
 			Name:    "print-path",
 			Aliases: []string{"p"},
+		},
+		&cli.StringFlag{
+			Name:        "build-dir",
+			DefaultText: "Manually set the build directory, relative to the root of the repository. Normally this is just the root of the repository.", //nolint:lll //Why: help text
+		},
+		&cli.StringFlag{
+			Name:        "build-path",
+			DefaultText: "Manually set the build path, relative to the build directory within the repository. Normally this is just the root of the repository unless overrode with --build-dir.", //nolint:lll //Why: help text
 		},
 		///EndBlock(flags)
 	}

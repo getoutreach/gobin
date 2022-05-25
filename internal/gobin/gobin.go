@@ -75,25 +75,25 @@ func (m *Module) GetBinaryCache() (string, error) {
 }
 
 // Run actually performs the binary retrieval, installation, and running.
-func Run(ctx context.Context, importPath string, printPath bool) error { //nolint:funlen,lll // Why: Not necessary to break up.
+func Run(ctx context.Context, fullPath, buildDir, buildPath string, printPath bool) error { //nolint:funlen,lll // Why: Not necessary to break up.
 	ref := ""
-	verSplit := strings.SplitN(importPath, "@", 2)
+	verSplit := strings.SplitN(fullPath, "@", 2)
 	if len(verSplit) == 2 {
-		importPath = verSplit[0]
+		fullPath = verSplit[0]
 		ref = verSplit[1]
 	}
 
 	if ref == "" {
-		return fmt.Errorf("expected a version, e.g. %s@vX.X.X", importPath)
+		return fmt.Errorf("expected a version, e.g. %s@vX.X.X", fullPath)
 	}
 
-	root, err := vcs.RepoRootForImportPath(importPath, false)
+	root, err := vcs.RepoRootForImportPath(fullPath, false)
 	if err != nil {
 		return errors.Wrap(err, "failed to parse import path")
 	}
 
 	m := &Module{
-		OriginalImport: importPath,
+		OriginalImport: fullPath,
 		Repo:           root.Repo,
 		Path:           root.Root,
 		Version:        ref,
@@ -110,11 +110,17 @@ func Run(ctx context.Context, importPath string, printPath bool) error { //nolin
 	if _, err := os.Stat(binPath); err != nil {
 		// Otherwise clone the repo, and build it
 		cleanupFn, sourceDir, err := downloadRepository(ctx, m)
+		fmt.Printf("Downloaded repository at %q\n", sourceDir)
+
 		if err != nil {
 			return err
 		}
 
-		err = buildRepository(ctx, sourceDir, m)
+		buildDirPath := filepath.Join(
+			strings.TrimSuffix(sourceDir, string(filepath.Separator)),
+			strings.TrimPrefix(buildDir, string(filepath.Separator)))
+
+		err = buildRepository(ctx, sourceDir, buildDirPath, buildPath, m)
 		if err != nil {
 			return err
 		}
@@ -150,7 +156,7 @@ func getCurrentGoVersion() (string, error) {
 }
 
 // buildRepository builds a go repository.
-func buildRepository(ctx context.Context, sourceDir string, m *Module) error {
+func buildRepository(ctx context.Context, rootPath, buildDirPath, buildPath string, m *Module) error {
 	binPath, err := m.GetBinaryCache()
 	if err != nil {
 		return err
@@ -159,14 +165,24 @@ func buildRepository(ctx context.Context, sourceDir string, m *Module) error {
 	// ensure we have a .tool-versions in the directory we're temporarily
 	// building this source code in, based off of the current versions of tools
 	// if we have asdf installed.
-	if err := generateToolVersions(ctx, sourceDir); err != nil {
+	if err := generateToolVersions(ctx, rootPath); err != nil {
 		return errors.Wrap(err, "failed to setup asdf integration")
 	}
 
-	cmd := exec.CommandContext(ctx, "go", "build", "-o", binPath, "./"+m.GetCommandPath())
-	cmd.Dir = sourceDir
+	if buildPath == "" {
+		buildPath = fmt.Sprintf(".%s%s%s",
+			string(filepath.Separator),
+			strings.TrimPrefix(m.GetCommandPath(), string(filepath.Separator)),
+			string(filepath.Separator))
+	}
+
+	args := []string{"build", "-o", binPath, buildPath}
+	cmd := exec.CommandContext(ctx, "go", args...)
+	cmd.Dir = buildDirPath
+
 	b, err := cmd.CombinedOutput()
 	if err != nil {
+		fmt.Printf("ran command \"go %s\"\n", strings.Join(args, " "))
 		fmt.Fprintln(os.Stderr, string(b))
 	}
 	return err
