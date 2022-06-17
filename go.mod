@@ -3,7 +3,7 @@ module github.com/getoutreach/gobin
 go 1.17
 
 require (
-	github.com/getoutreach/gobox v1.39.2
+	github.com/getoutreach/gobox v1.41.5
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.8.1
 	github.com/urfave/cli/v2 v2.6.0
