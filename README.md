@@ -14,4 +14,6 @@ Please read the [CONTRIBUTING.md](CONTRIBUTING.md) document for guidelines on de
 
 <!--- Block(overview) -->
 
+An alternative to gobin that support Go 1.16+.
+
 <!--- EndBlock(overview) -->
