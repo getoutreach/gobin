@@ -1,5 +1,5 @@
 name: gobin
-reportingTeam: fnd-dtss
+reportingTeam: fnd-dt
 description: Downloads, compiles, and runs (or just returns the binary path) of go applications.
 oss: true
 slack: dev-tooling-notifications
@@ -8,6 +8,8 @@ commands:
   - gobin
 circleAPIKey: ""
 lintroller: platinum
+tracing: honeycomb
+metrics: datadog
 releaseType: ""
 deployTo:
   environments: []
@@ -15,6 +17,7 @@ arguments:
   circleAPIKey: ""
   commands:
     - gobin
+  commitGuard: false
   dependencies:
     optional: []
     required: []
@@ -23,6 +26,7 @@ arguments:
   kubernetes:
     groups: []
   lintroller: platinum
+  metrics: datadog
   opslevel:
     confluenceSpaceKey: ""
     datadogDashboards:
@@ -32,8 +36,10 @@ arguments:
   releaseOptions:
     allowMajorVersions: null
     enablePrereleases: false
-  reportingTeam: fnd-dtss
+  reportingTeam: fnd-dt
+  resources: {}
   service: false
+  tracing: honeycomb
   tutorial: false
   vaultSecrets:
     - deploy/honeycomb_new/%(environment)s/honeycomb
@@ -41,10 +47,12 @@ arguments:
     - deploy/mint/%(environment)s/validation/mint-validator-payload
     - deploy/flagship-shared-secret/%(environment)s/authn-flagship-payload
 modules:
-  - name: github.com/getoutreach/stencil-outreach
   - name: github.com/getoutreach/stencil-base
   - name: github.com/getoutreach/stencil-golang
   - name: github.com/getoutreach/stencil-opslevel
+  - name: github.com/getoutreach/stencil-outreach
+  - name: github.com/getoutreach/stencil-circleci
+  - name: github.com/getoutreach/stencil-actions
 opsLevel:
   serviceTier: 0
   lifecycle: ""
