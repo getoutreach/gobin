@@ -1,6 +1,8 @@
 name: gobin
 arguments:
   circleAPIKey: ""
+  ciOptions:
+    skipDocker: true
   commands:
     - gobin
   commitGuard: false
