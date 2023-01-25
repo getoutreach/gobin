@@ -14,6 +14,7 @@ TAGS
 *.sublime-project
 *.sublime-workspace
 .\#*
+.dir-locals.el
 
 # Test binary, build with "go test -c"
 *.test
@@ -60,6 +61,6 @@ Pulumi.*.yaml
 # Documentation output
 /apidocs
 
-###Block(extras)
+## <<Stencil::Block(extras)>>
 
-###EndBlock(extras)
+## <</Stencil::Block>>
