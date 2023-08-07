@@ -5,7 +5,7 @@ go 1.19
 require (
 	github.com/getoutreach/gobox v1.71.0
 	github.com/pkg/errors v0.9.1
-	github.com/sirupsen/logrus v1.9.0
+	github.com/sirupsen/logrus v1.9.3
 	github.com/urfave/cli/v2 v2.16.3
 	golang.org/x/tools/go/vcs v0.1.0-deprecated
 )
