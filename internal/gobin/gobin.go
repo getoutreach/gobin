@@ -19,6 +19,8 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
+	//nolint:staticcheck // Why: We're aware of the deprecation. This tool
+	// will be deprecated in favor of `go run path@version` in the near future.
 	"golang.org/x/tools/go/vcs"
 )
 
