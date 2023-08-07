@@ -2,7 +2,8 @@
 # syntax, such as anchors, will be fixed automatically.
 version: 2.1
 orbs:
-  shared: getoutreach/shared@2.8.0
+  shared: getoutreach/shared@2.17.0
+  queue: eddiewebb/queue@1.8.4
 
 parameters:
   rebuild_cache:
@@ -16,7 +17,6 @@ contexts: &contexts
   - docker-registry
   - npm-credentials
   - prismacloud-credentials
-  - opslevel-credentials
   - vault-dev
   - confluence
   - circleci-credentials
@@ -105,14 +105,19 @@ workflows:
           filters:
             branches:
               ignore: *release_branches
-      - shared/test: *test
+      - shared/test:
+          <<: *test
+          ## <<Stencil::Block(circleSharedTestExtra)>>
+
+          ## <</Stencil::Block>>
       - shared/publish_docs:
           context: *contexts
           filters:
             branches:
-              ignore: /.*/
+              only:
+                - main
             tags:
-              only: /v[0-9]+(\.[0-9]+)*(-.*)*/
+              only: /v\d+(\.\d+)*(-.*)*/
       - shared/e2e:
           context: *contexts
           ## <<Stencil::Block(circleE2EExtra)>>
