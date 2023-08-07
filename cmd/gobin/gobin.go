@@ -10,6 +10,7 @@ import (
 	"context"
 
 	oapp "github.com/getoutreach/gobox/pkg/app"
+	"github.com/getoutreach/gobox/pkg/cfg"
 	gcli "github.com/getoutreach/gobox/pkg/cli"
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
@@ -39,6 +40,7 @@ const HoneycombDataset = ""
 
 // <</Stencil::Block>>
 
+// main is the entrypoint for the gobin CLI.
 func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	log := logrus.New()
@@ -83,5 +85,13 @@ func main() {
 	// <</Stencil::Block>>
 
 	// Insert global flags, tracing, updating and start the application.
-	gcli.HookInUrfaveCLI(ctx, cancel, &app, log, HoneycombTracingKey, HoneycombDataset, TeleforkAPIKey)
+	gcli.Run(ctx, cancel, &app, &gcli.Config{
+		Logger: log,
+		Telemetry: gcli.TelemetryConfig{
+			Otel: gcli.TelemetryOtelConfig{
+				Dataset:         HoneycombDataset,
+				HoneycombAPIKey: cfg.SecretData(HoneycombTracingKey),
+			},
+		},
+	})
 }
