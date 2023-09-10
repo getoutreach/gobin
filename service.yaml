@@ -1,77 +1,20 @@
 name: gobin
 arguments:
-  circleAPIKey: ""
   ciOptions:
     skipDocker: true
   commands:
     - gobin
-  commitGuard: false
-  dependencies:
-    optional: []
-    required: []
   description: Downloads, compiles, and runs (or just returns the binary path) of go applications.
-  go-protoc-imports: []
-  grpcClients: []
-  kubernetes:
-    groups: []
-  lintroller: platinum
-  metrics: datadog
-  opslevel:
-    confluenceSpaceKey: ""
-    datadogDashboards:
-      mainLink: ""
-    designDocumentLink: ""
   oss: true
-  releaseOptions:
-    allowMajorVersions: false
-    enablePrereleases: false
-    prereleasesBranch: ""
   reportingTeam: fnd-dt
-  resources: {}
-  service: false
   slack: dev-tooling-notifications
-  terraform:
-    datadog:
-      grpc:
-        evaluationWindow: ""
-        latency:
-          percentiles:
-            highTraffic: 0
-            lowTraffic: 0
-          thresholds:
-            highTraffic: 0
-            lowTraffic: 0
-        lowTrafficCountThreshold: 0
-        qos:
-          thresholds:
-            highTraffic: 0
-            lowTraffic: 0
-        tags: []
-      http:
-        evaluationWindow: ""
-        percentiles:
-          highTraffic: 0
-          lowTraffic: 0
-        thresholds:
-          highTraffic: 0
-          lowCount: 0
-          lowTraffic: 0
-      pods:
-        thresholds:
-          availableLowCount: 0
-  tracing: opentelemetry
-  tutorial: false
-  validation: false
-  vaultSecrets:
-    - deploy/honeycomb_new/%(environment)s/honeycomb
-    - deploy/launchdarkly/%(environment)s/launchdarkly
-    - deploy/mint/%(environment)s/validation/mint-validator-payload
-    - deploy/flagship-shared-secret/%(environment)s/authn-flagship-payload
 modules:
   - name: github.com/getoutreach/stencil-actions
   - name: github.com/getoutreach/stencil-discovery
   - name: github.com/getoutreach/stencil-base
   - name: github.com/getoutreach/stencil-golang
+    channel: rc
+  - name: github.com/getoutreach/devbase
+    channel: rc
   - name: github.com/getoutreach/stencil-outreach
   - name: github.com/getoutreach/stencil-circleci
-migrated: true
