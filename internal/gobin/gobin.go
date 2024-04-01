@@ -176,6 +176,25 @@ func buildRepository(ctx context.Context, rootPath, buildDirPath, buildPath stri
 			string(filepath.Separator))
 	}
 
+	output, err := goBuild(ctx, binPath, buildDirPath, buildPath)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, output)
+		if strings.Contains(output, "updates to go.mod needed") {
+			cmd := exec.CommandContext(ctx, "go", "mod", "tidy")
+			cmd.Dir = buildDirPath
+			if err := cmd.Run(); err != nil {
+				return errors.Wrap(err, "failed to run `go mod tidy`")
+			}
+			fmt.Fprintln(os.Stderr, "Automatically ran `go mod tidy`, retrying")
+			output, err = goBuild(ctx, binPath, buildDirPath, buildPath)
+			fmt.Fprintln(os.Stderr, output)
+		}
+	}
+	return err
+}
+
+// goBuild runs `go build` in buildDirPath.
+func goBuild(ctx context.Context, binPath, buildDirPath, buildPath string) (string, error) {
 	args := []string{"build", "-o", binPath, buildPath}
 	cmd := exec.CommandContext(ctx, "go", args...)
 	cmd.Dir = buildDirPath
@@ -183,9 +202,8 @@ func buildRepository(ctx context.Context, rootPath, buildDirPath, buildPath stri
 	b, err := cmd.CombinedOutput()
 	if err != nil {
 		fmt.Printf("ran command \"go %s\"\n", strings.Join(args, " "))
-		fmt.Fprintln(os.Stderr, string(b))
 	}
-	return err
+	return string(b), err
 }
 
 // generateToolVersions generates a .tool-versions off of the output of asdf current
