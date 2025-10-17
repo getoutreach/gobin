@@ -2,6 +2,7 @@ name: gobin
 arguments:
   ciOptions:
     skipDocker: true
+    skipE2e: true
   commands:
     - gobin
   description: Downloads, compiles, and runs (or just returns the binary path) of go applications.

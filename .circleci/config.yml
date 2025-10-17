@@ -140,8 +140,3 @@ workflows:
                 - main
             tags:
               only: /v\d+(\.\d+)*(-.*)*/
-      - shared/e2e:
-          context: *contexts
-          ## <<Stencil::Block(circleE2EExtra)>>
-
-          ## <</Stencil::Block>>
