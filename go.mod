@@ -2,7 +2,7 @@ module github.com/getoutreach/gobin
 
 go 1.25.0
 
-toolchain go1.25.5
+toolchain go1.25.7
 
 require (
 	github.com/getoutreach/gobox v1.110.5
