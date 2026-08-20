@@ -7,7 +7,7 @@ toolchain go1.25.7
 require (
 	github.com/getoutreach/gobox v1.110.5
 	github.com/pkg/errors v0.9.1
-	github.com/sirupsen/logrus v1.9.4
+	github.com/sirupsen/logrus v1.10.0
 	github.com/urfave/cli/v2 v2.27.7
 	golang.org/x/tools/go/vcs v0.1.0-deprecated
 )
